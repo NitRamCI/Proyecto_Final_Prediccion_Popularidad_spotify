@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Spotify Popularity Predictor</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <style>
+    body { background-color: #f8f9fa; }
+    .navbar-brand { font-weight: 700; letter-spacing: 1px; }
+    .popularity-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      font-size: 0.85rem;
+    }
+    .pop-high   { background: #d4edda; color: #155724; }
+    .pop-mid    { background: #fff3cd; color: #856404; }
+    .pop-low    { background: #f8d7da; color: #721c24; }
+    .result-card {
+      border-left: 5px solid #1DB954;
+      background: #fff;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark bg-dark mb-4">
+  <div class="container">
+    <span class="navbar-brand">🎵 Spotify Popularity Predictor</span>
+    <span class="text-secondary small">Predicción con Machine Learning</span>
+  </div>
+</nav>
+
+<div class="container">
+
+  <!-- Alerta de resultados -->
+  <div id="alertBox" class="alert d-none mb-3"></div>
+
+  <div class="row">
+
+    <!-- FORMULARIO AGREGAR -->
+    <div class="col-lg-5 mb-4">
+      <div class="card shadow-sm">
+        <div class="card-header bg-success text-white">
+          <h5 class="mb-0">➕ Predecir popularidad de canción</h5>
+        </div>
+        <div class="card-body">
+          <form id="addSongForm">
+
+            <div class="mb-2">
+              <label class="form-label fw-semibold">Género musical</label>
+              <select class="form-select form-select-sm" id="track_genre" required>
+                <option value="">Seleccionar género</option>
+                <option value="acoustic">Acoustic</option>
+                <option value="afrobeat">Afrobeat</option>
+                <option value="alt-rock">Alt-rock</option>
+                <option value="alternative">Alternative</option>
+                <option value="ambient">Ambient</option>
+                <option value="anime">Anime</option>
+                <option value="blues">Blues</option>
+                <option value="children">Children</option>
+                <option value="chill">Chill</option>
+                <option value="classical">Classical</option>
+                <option value="club">Club</option>
+                <option value="country">Country</option>
+                <option value="dance">Dance</option>
+                <option value="dancehall">Dancehall</option>
+                <option value="deep-house">Deep House</option>
+                <option value="disco">Disco</option>
+                <option value="drum-and-bass">Drum and Bass</option>
+                <option value="dubstep">Dubstep</option>
+                <option value="edm">EDM</option>
+                <option value="electronic">Electronic</option>
+                <option value="folk">Folk</option>
+                <option value="funk">Funk</option>
+                <option value="gospel">Gospel</option>
+                <option value="grunge">Grunge</option>
+                <option value="hard-rock">Hard Rock</option>
+                <option value="heavy-metal">Heavy Metal</option>
+                <option value="hip-hop">Hip-Hop</option>
+                <option value="house">House</option>
+                <option value="indie">Indie</option>
+                <option value="indie-pop">Indie Pop</option>
+                <option value="j-pop">J-Pop</option>
+                <option value="jazz">Jazz</option>
+                <option value="k-pop">K-Pop</option>
+                <option value="latin">Latin</option>
+                <option value="metal">Metal</option>
+                <option value="opera">Opera</option>
+                <option value="party">Party</option>
+                <option value="pop">Pop</option>
+                <option value="punk">Punk</option>
+                <option value="punk-rock">Punk Rock</option>
+                <option value="r-n-b">R&B</option>
+                <option value="reggae">Reggae</option>
+                <option value="reggaeton">Reggaeton</option>
+                <option value="rock">Rock</option>
+                <option value="rock-n-roll">Rock and Roll</option>
+                <option value="salsa">Salsa</option>
+                <option value="samba">Samba</option>
+                <option value="soul">Soul</option>
+                <option value="techno">Techno</option>
+                <option value="trance">Trance</option>
+                <option value="trip-hop">Trip-Hop</option>
+                <option value="world-music">World Music</option>
+              </select>
+            </div>
+
+            <div class="row mb-2">
+              <div class="col-6">
+                <label class="form-label fw-semibold">Duración (ms)</label>
+                <input type="number" class="form-control form-control-sm" id="duration_ms" value="210000" min="30000" max="600000" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">¿Explícita?</label>
+                <select class="form-select form-select-sm" id="explicit">
+                  <option value="0">No</option>
+                  <option value="1">Sí</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row mb-2">
+              <div class="col-6">
+                <label class="form-label fw-semibold">Danceability <span class="text-muted">(0–1)</span></label>
+                <input type="number" step="0.01" min="0" max="1" class="form-control form-control-sm" id="danceability" value="0.5" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Energy <span class="text-muted">(0–1)</span></label>
+                <input type="number" step="0.01" min="0" max="1" class="form-control form-control-sm" id="energy" value="0.5" required>
+              </div>
+            </div>
+
+            <div class="row mb-2">
+              <div class="col-6">
+                <label class="form-label fw-semibold">Loudness <span class="text-muted">(dB)</span></label>
+                <input type="number" step="0.1" class="form-control form-control-sm" id="loudness" value="-8.0" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Tempo <span class="text-muted">(BPM)</span></label>
+                <input type="number" step="0.5" class="form-control form-control-sm" id="tempo" value="120" required>
+              </div>
+            </div>
+
+            <div class="row mb-2">
+              <div class="col-4">
+                <label class="form-label fw-semibold">Key <span class="text-muted">(0–11)</span></label>
+                <input type="number" min="0" max="11" class="form-control form-control-sm" id="key" value="5" required>
+              </div>
+              <div class="col-4">
+                <label class="form-label fw-semibold">Mode</label>
+                <select class="form-select form-select-sm" id="mode">
+                  <option value="1">Mayor (1)</option>
+                  <option value="0">Menor (0)</option>
+                </select>
+              </div>
+              <div class="col-4">
+                <label class="form-label fw-semibold">Time sig.</label>
+                <input type="number" min="1" max="7" class="form-control form-control-sm" id="time_signature" value="4" required>
+              </div>
+            </div>
+
+            <div class="row mb-2">
+              <div class="col-6">
+                <label class="form-label fw-semibold">Speechiness</label>
+                <input type="number" step="0.01" min="0" max="1" class="form-control form-control-sm" id="speechiness" value="0.05" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Acousticness</label>
+                <input type="number" step="0.01" min="0" max="1" class="form-control form-control-sm" id="acousticness" value="0.1" required>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <div class="col-6">
+                <label class="form-label fw-semibold">Instrumentalness</label>
+                <input type="number" step="0.01" min="0" max="1" class="form-control form-control-sm" id="instrumentalness" value="0.0" required>
+              </div>
+              <div class="col-6">
+                <label class="form-label fw-semibold">Liveness</label>
+                <input type="number" step="0.01" min="0" max="1" class="form-control form-control-sm" id="liveness" value="0.12" required>
+              </div>
+            </div>
+
+            <div class="mb-3">
+              <label class="form-label fw-semibold">Valence <span class="text-muted">(positividad 0–1)</span></label>
+              <input type="number" step="0.01" min="0" max="1" class="form-control form-control-sm" id="valence" value="0.5" required>
+            </div>
+
+            <button type="submit" class="btn btn-success w-100">🎯 Predecir popularidad</button>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- TABLA DE CANCIONES -->
+    <div class="col-lg-7">
+
+      <!-- Resultado de la última predicción -->
+      <div id="resultCard" class="card result-card shadow-sm mb-4 d-none">
+        <div class="card-body text-center py-3">
+          <h6 class="text-muted mb-1">Popularidad predicha</h6>
+          <h1 class="display-4 fw-bold text-success mb-0" id="resultValue">—</h1>
+          <p class="text-muted small">sobre 100 puntos</p>
+          <div id="resultBar" class="progress" style="height: 12px;">
+            <div class="progress-bar bg-success" id="resultBarFill" role="progressbar" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tabla historial -->
+      <div class="card shadow-sm">
+        <div class="card-header d-flex justify-content-between align-items-center">
+          <h5 class="mb-0">📋 Historial de predicciones</h5>
+          <button class="btn btn-sm btn-outline-secondary" onclick="loadSongs()">🔄 Actualizar</button>
+        </div>
+        <div class="card-body p-0">
+          <div class="table-responsive">
+            <table class="table table-hover table-sm mb-0" id="songsTable">
+              <thead class="table-dark">
+                <tr>
+                  <th>ID</th>
+                  <th>Género</th>
+                  <th>Dance</th>
+                  <th>Energy</th>
+                  <th>Tempo</th>
+                  <th>Popularidad</th>
+                  <th>Acciones</th>
+                </tr>
+              </thead>
+              <tbody id="songsTableBody">
+                <tr><td colspan="7" class="text-center text-muted py-3">Cargando...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Editar -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-warning">
+        <h5 class="modal-title">✏️ Editar canción</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <form id="editSongForm">
+          <input type="hidden" id="editId">
+          <div class="row">
+            <div class="col-md-6 mb-2">
+              <label class="form-label">Género musical</label>
+              <input type="text" class="form-control form-control-sm" id="edit_track_genre" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Duración (ms)</label>
+              <input type="number" class="form-control form-control-sm" id="edit_duration_ms" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Explícita</label>
+              <select class="form-select form-select-sm" id="edit_explicit">
+                <option value="0">No</option>
+                <option value="1">Sí</option>
+              </select>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Danceability</label>
+              <input type="number" step="0.01" class="form-control form-control-sm" id="edit_danceability" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Energy</label>
+              <input type="number" step="0.01" class="form-control form-control-sm" id="edit_energy" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Key</label>
+              <input type="number" class="form-control form-control-sm" id="edit_key" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Loudness</label>
+              <input type="number" step="0.1" class="form-control form-control-sm" id="edit_loudness" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Mode</label>
+              <input type="number" class="form-control form-control-sm" id="edit_mode" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Speechiness</label>
+              <input type="number" step="0.01" class="form-control form-control-sm" id="edit_speechiness" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Acousticness</label>
+              <input type="number" step="0.01" class="form-control form-control-sm" id="edit_acousticness" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Instrumentalness</label>
+              <input type="number" step="0.01" class="form-control form-control-sm" id="edit_instrumentalness" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Liveness</label>
+              <input type="number" step="0.01" class="form-control form-control-sm" id="edit_liveness" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Valence</label>
+              <input type="number" step="0.01" class="form-control form-control-sm" id="edit_valence" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Tempo</label>
+              <input type="number" step="0.5" class="form-control form-control-sm" id="edit_tempo" required>
+            </div>
+            <div class="col-md-3 mb-2">
+              <label class="form-label">Time Signature</label>
+              <input type="number" class="form-control form-control-sm" id="edit_time_signature" required>
+            </div>
+          </div>
+          <button type="submit" class="btn btn-warning w-100 mt-2">💾 Guardar cambios</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API = '/song';
+
+// Cargar al inicio
+document.addEventListener('DOMContentLoaded', loadSongs);
+
+// Carga y renderiza todas las canciones
+async function loadSongs() {
+  try {
+    const res = await fetch(API);
+    const songs = await res.json();
+    renderSongs(songs);
+  } catch (err) {
+    console.error('Error cargando canciones:', err);
+  }
+}
+
+// Renderiza la tabla
+function renderSongs(songs) {
+  const tbody = document.getElementById('songsTableBody');
+  if (songs.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted py-3">No hay predicciones aún</td></tr>';
+    return;
+  }
+  tbody.innerHTML = '';
+  songs.forEach(s => {
+    const pop = s.popularity ? s.popularity.toFixed(1) : '—';
+    const badgeClass = s.popularity >= 60 ? 'pop-high' : s.popularity >= 35 ? 'pop-mid' : 'pop-low';
+    const row = document.createElement('tr');
+    row.innerHTML = `
+      <td>${s.id}</td>
+      <td>${s.track_genre}</td>
+      <td>${s.danceability ? s.danceability.toFixed(2) : '—'}</td>
+      <td>${s.energy ? s.energy.toFixed(2) : '—'}</td>
+      <td>${s.tempo ? s.tempo.toFixed(0) : '—'}</td>
+      <td><span class="popularity-badge ${badgeClass}">${pop}</span></td>
+      <td>
+        <button class="btn btn-sm btn-outline-warning me-1" onclick="openEdit(${s.id})">✏️</button>
+        <button class="btn btn-sm btn-outline-danger" onclick="deleteSong(${s.id})">🗑️</button>
+      </td>
+    `;
+    tbody.appendChild(row);
+  });
+}
+
+// Mostrar alerta
+function showAlert(msg, type='success') {
+  const box = document.getElementById('alertBox');
+  box.className = `alert alert-${type}`;
+  box.textContent = msg;
+  box.classList.remove('d-none');
+  setTimeout(() => box.classList.add('d-none'), 4000);
+}
+
+// Recoger datos del formulario principal
+function getFormData(prefix='') {
+  const g = id => document.getElementById(prefix + id);
+  return {
+    track_genre:      g('track_genre').value,
+    duration_ms:      parseFloat(g('duration_ms').value),
+    explicit:         parseInt(g('explicit').value),
+    danceability:     parseFloat(g('danceability').value),
+    energy:           parseFloat(g('energy').value),
+    key:              parseInt(g('key').value),
+    loudness:         parseFloat(g('loudness').value),
+    mode:             parseInt(g('mode').value),
+    speechiness:      parseFloat(g('speechiness').value),
+    acousticness:     parseFloat(g('acousticness').value),
+    instrumentalness: parseFloat(g('instrumentalness').value),
+    liveness:         parseFloat(g('liveness').value),
+    valence:          parseFloat(g('valence').value),
+    tempo:            parseFloat(g('tempo').value),
+    time_signature:   parseInt(g('time_signature').value)
+  };
+}
+
+// POST — agregar canción
+document.getElementById('addSongForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const data = getFormData();
+  try {
+    const res = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) {
+      const song = await res.json();
+      const pop = song.popularity.toFixed(1);
+
+      // Mostrar resultado destacado
+      document.getElementById('resultValue').textContent = pop;
+      document.getElementById('resultBarFill').style.width = pop + '%';
+      document.getElementById('resultCard').classList.remove('d-none');
+
+      showAlert(`✅ Popularidad predicha: ${pop} / 100`);
+      loadSongs();
+    } else {
+      showAlert('❌ Error al procesar la predicción', 'danger');
+    }
+  } catch (err) {
+    showAlert('❌ No se pudo conectar con la API', 'danger');
+  }
+});
+
+// Abrir modal de edición
+async function openEdit(id) {
+  try {
+    const res = await fetch(`${API}/${id}`);
+    const s = await res.json();
+    const fields = ['track_genre','duration_ms','explicit','danceability','energy',
+                    'key','loudness','mode','speechiness','acousticness',
+                    'instrumentalness','liveness','valence','tempo','time_signature'];
+    document.getElementById('editId').value = s.id;
+    fields.forEach(f => {
+      const el = document.getElementById('edit_' + f);
+      if (el) el.value = s[f];
+    });
+    new bootstrap.Modal(document.getElementById('editModal')).show();
+  } catch (err) {
+    showAlert('❌ Error cargando datos para editar', 'danger');
+  }
+}
+
+// PUT — actualizar canción
+document.getElementById('editSongForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const id = document.getElementById('editId').value;
+  const data = getFormData('edit_');
+  try {
+    const res = await fetch(`${API}/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    if (res.ok) {
+      const song = await res.json();
+      showAlert(`✅ Actualizado — nueva popularidad: ${song.popularity.toFixed(1)} / 100`);
+      bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+      loadSongs();
+    } else {
+      showAlert('❌ Error al actualizar', 'danger');
+    }
+  } catch (err) {
+    showAlert('❌ Error de conexión', 'danger');
+  }
+});
+
+// DELETE — eliminar canción
+async function deleteSong(id) {
+  if (!confirm(`¿Eliminar registro #${id}?`)) return;
+  try {
+    const res = await fetch(`${API}/${id}`, { method: 'DELETE' });
+    if (res.ok) {
+      showAlert(`🗑️ Registro #${id} eliminado`);
+      loadSongs();
+    } else {
+      showAlert('❌ Error al eliminar', 'danger');
+    }
+  } catch (err) {
+    showAlert('❌ Error de conexión', 'danger');
+  }
+}
+</script>
+</body>
+</html>
