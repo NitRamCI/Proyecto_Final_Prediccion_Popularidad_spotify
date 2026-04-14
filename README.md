@@ -1,0 +1,2 @@
+DEBIDO AL PESO NO SE PUDO SUBIR EL "MODEL" A GITHUB ASI QUE SE COPIA EL LINK DONDE ENCONTRARLO:
+https://drive.google.com/drive/u/0/folders/137iixrWqL7F-VeAqyIBMNruXqHmlr-_b
